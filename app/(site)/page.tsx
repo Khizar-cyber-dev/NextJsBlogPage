@@ -8,6 +8,8 @@ import axios from 'axios';
 import { signIn, useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import AuthSocialButton from '../home/components/AuthSocialButton';
+import { BsGithub, BsGoogle } from 'react-icons/bs';
 
 type Props = {
   name: string
@@ -27,7 +29,8 @@ const schema = z.object({
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
-  const [variant, setVariant] = useState<Variant>("SignUp");
+  const [variant, setVariant] = useState<Variant>("SignIn");
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const session = useSession();
 
@@ -38,6 +41,10 @@ const Page = () => {
     },
     resolver: zodResolver(schema),
   })
+
+   useEffect(() => {
+        setMounted(true);
+    }, []);
 
   useEffect(() => {
     if(session.status === "authenticated"){
@@ -58,7 +65,7 @@ const Page = () => {
            .catch(() => toast.error("Something went wrong"))
            .finally(() => setLoading(false));
         }
-      }else{toast.error("Passwords do not match");}
+      }else{toast.error("Passwords do not match.");}
 
         if(variant === "SignIn"){
            signIn('credentials', {
@@ -76,8 +83,26 @@ const Page = () => {
           })
           .finally(() => setLoading(false));
         }
-  }
+    }
 
+  const socialAction = (action: string) => {
+       setLoading(true);
+       signIn(action, { redirect: false })
+      .then((callback) => {
+        if (callback?.error) {
+          toast.error('Invalid credentials!');
+        }
+        if (callback?.ok) {
+          toast.success('Logged in successfully');
+        }
+      })
+      .finally(() => setLoading(false));
+    };
+
+    if(!mounted){
+      return null;
+    }
+    
   return (
     <div>
       <form 
@@ -153,6 +178,11 @@ const Page = () => {
             )}
           </div>
           )}
+
+            <div className="mt-6 flex gap-2">
+                    <AuthSocialButton icon={BsGithub} onClick={() => socialAction('github')} />
+                    <AuthSocialButton icon={BsGoogle} onClick={() => socialAction('google')} />
+            </div>
 
           <div>
             <button 
