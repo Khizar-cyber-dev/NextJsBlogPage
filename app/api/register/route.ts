@@ -5,14 +5,10 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { name, email, password, confirmPassword } = body;
+        const { name, email, password } = body;
 
-        if (!name || !email || !password || !confirmPassword) {
-            return new NextResponse('Name, email, password, and confirmPassword are required', { status: 400 });
-        }
-
-        if (password !== confirmPassword) {
-            return new NextResponse('Passwords do not match', { status: 400 });
+        if (!name || !email || !password) {
+            return new NextResponse('Name, email, and password are required', { status: 400 });
         }
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
